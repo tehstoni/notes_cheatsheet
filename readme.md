@@ -1,4 +1,9 @@
 # Cheat Sheet
+
+### Disclaimer: I don't consider anything here original or of my own.
+### This is a personal cheatsheet repository, just to be used as a reference or guide, or place to just hold my things.
+### Googling for anything in here will probably lead you to other websites or github repo with the exact same thing.
+
 ## Key
 <p># Will be used to designate major sections.</p>
 <p>## Will be used to designate topics.</p>

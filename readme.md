@@ -33,6 +33,8 @@ Attach existing session:
 ```bash
 tmux a
 #OR
+
+tmux ls  #to list out sessions
 tmux attach -s <session name>
 ```
 

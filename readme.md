@@ -2264,8 +2264,19 @@ Use the **dap-shell** flag with certipy.
 ## Windows Enuemration
 
 <!-----
-enum av on machine
+Get-MPPreference
 ---->
+
+### Pillaging
+
+Manspider
+```bash
+script -a manspider1
+manspider windowshosts.txt -u user -p pass -n -f passw login logon cred Untitled -e kdbx cfg config conf ps1 cmd sh bat kdbx txt zip xls doc pdf
+
+script -a manspider2 # this one gets ran and then left to parse if theres time
+manspider windowshosts.txt -u user -p pass -n -f username -e txt xls doc pdf conf & 
+```
 
 
 ## Windows Priv Esc

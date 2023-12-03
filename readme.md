@@ -2886,6 +2886,8 @@ Install stuffs
 ```
 armory install all # not recommended
 
+# if you highlight the last 4 lines and the trailing newline, then paste into your terminal with sliver running it will install the 4 packages selected
+
 armory install windows-credentials
 
 armory install .net-recon
@@ -2893,6 +2895,8 @@ armory install .net-recon
 armory install .net-pivot
 
 armory install .net-execute
+
+#
 ```
 
 Host Situational Awareness

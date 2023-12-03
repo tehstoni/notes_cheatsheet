@@ -12,16 +12,27 @@
 
 ## Quick Skip
 <a href="https://github.com/tehstoni/notes_cheatsheet#-tmux">Tmux</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#basic-enumeration-with-nmap">Nmap</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#arp-spoofing-godmode">Arp Spoofing</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#active-directory">Active Directory Enum</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#active-directory-lateral-movement">Active Directory Lateral Movement</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#active-directory-persistence">Active Directory Persistence</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#active-directory-priv-esc">Active Directory Privilege Escalation</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#active-directory-certificate-services-1">ADCS ESC 1, 4, and 8</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#antivirus-and-edr-evasion">Antivirus and EDR Evasion Quickstart</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#pivoting-tunneling-and-port-forwarding">Pivoting</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#c2">C2 Start</a>
+
 <a href="https://github.com/tehstoni/notes_cheatsheet#sliver">Sliver</a>
 
 <H1 class='tmux'> TMUX</H1>

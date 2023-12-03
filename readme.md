@@ -71,7 +71,6 @@ From reverse shell generator, to MSFVenom syntax, to shell stablilization.
 # Network Enumeration and Exploitation
 
 
-
 ## Basic Enumeration with Nmap
 Ping sweep to discover host on the network that respond to ICMP.
 This can be a quick way to discover host.
@@ -135,7 +134,7 @@ cat foundranges.txt knownranges.txt | sort -uV > ranges.txt
 
 Initial PCap
 ```bash
-timeout 10m tcpdump -ni eth0 -w sensitive/initial.cap 'not (port <x> and tcp)'
+timeout 10m tcpdump -ni eth0 -w initial.cap 'not (port <x> and tcp)'
 ```
 Protocol Statistics:
 ```bash

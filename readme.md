@@ -70,6 +70,7 @@ tmux attach -s <session name>
 | Copy highlighted text to ***TMUX*** clipboard | alt+w |
 | Paste ***TMUX*** clipboard | ] |
 | Check clipboard | # |
+| Kill Pane | x |
 
 # Random Useful Tools
 

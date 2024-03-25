@@ -458,11 +458,8 @@ silenthound.py -u 'User' -p 'pass' <ip> domain.local -g -n -k --kerberoast
 **Imports**
 
 <details>
-  
-<summary> Click me ffor the JSON</summary>
-  
-```json=
-  
+<summary> Click me for the JSON </summary>
+```json
 {
     "queries": [
         {
@@ -1307,9 +1304,7 @@ silenthound.py -u 'User' -p 'pass' <ip> domain.local -g -n -k --kerberoast
 
 <details>
 <summary> Click me for the JSON</summary>
-
-```json=
-
+```json
 {
   "queries": [
     {
@@ -1527,7 +1522,6 @@ silenthound.py -u 'User' -p 'pass' <ip> domain.local -g -n -k --kerberoast
   ]
 }
 ```
-
 </details>
 
 
@@ -2333,7 +2327,7 @@ secretsdump.py -user-status -just-dc-ntlm -just-dc-user krbtgt 'lab.local/Admini
 
 General ADCS Side Notes: If PKINIT Authentication is not working, LDAP(s)/Schannel can be used. 
 
-Use the **dap-shell** flag with certipy.
+Use the **ldap-shell** flag with certipy.
 
 
 ## Windows Enumeration
@@ -2884,7 +2878,7 @@ https://192.168.1.11:8080/anything.woff
 ```
 
 Simple PowerShell Shellcode Runner
-```
+```csharp
 function LookupFunc {
 
 Param ($moduleName, $functionName)

@@ -2364,6 +2364,7 @@ C:\AD\Tools\InviShell\InviShell\RunWithRegistryNonAdmin.bat
 ```
 
 World writable folders that bypass AppLocker
+```
 C:\Windows\Tasks 
 C:\Windows\Temp 
 C:\windows\tracing
@@ -2380,7 +2381,7 @@ C:\Windows\SysWOW64\FxsTmp
 C:\Windows\SysWOW64\com\dmp
 C:\Windows\SysWOW64\Tasks\Microsoft\Windows\SyncCenter
 C:\Windows\SysWOW64\Tasks\Microsoft\Windows\PLA\System
-
+```
 
 <!-----
 Get-MPPreference

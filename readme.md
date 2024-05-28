@@ -41,8 +41,6 @@ Functions follow after the command prefix.
 
 **Default command prefix: ^b**
 
-New pane: c
-
 Attach existing session:
 ```bash
 tmux a
@@ -55,6 +53,7 @@ tmux attach -s <session name>
 **Common Actions**
 | Description | Key | 
 | -------- | -------- | 
+| Create New Pane | c |
 | Split pane vertical | %     | 
 | Rename session | $ |
 | Rname pane | , (comma) |

@@ -42,6 +42,7 @@ Functions follow after the command prefix.
 **Default command prefix: ^b**
 
 New pane: c
+
 Attach existing session:
 ```bash
 tmux a

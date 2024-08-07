@@ -153,6 +153,13 @@ timeout 10m tcpdump -ni eth0 -w initial.cap 'not (port <x> and tcp)'
 Protocol Statistics:
 ```bash
 tshark -qz io,phs -r initial.cap
+
+
+# Check for host using HSRP, remove these from your target list.
+tshark -nr initial.cap -Y hsrp -V | grep 'Source Address' | sort -u
+
+# Check for host using VRRP, remove these from your target list.
+tshark -nr initial.cap -Y vrrp -V | grep 'Source Address' | sort -u
 ```
 
 Nmap scan your local subnet to create a list of host to spoof.

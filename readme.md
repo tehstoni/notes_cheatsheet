@@ -467,6 +467,7 @@ silenthound.py -u 'User' -p 'pass' <ip> domain.local -g -n -k --kerberoast
 <details>
 <summary> Click me for the JSON </summary>
 ```json
+	
 {
     "queries": [
         {

